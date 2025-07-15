@@ -70,7 +70,7 @@ emitted_ocdfgs = []
 def append_ocdfg(output: dict):
     emitted_ocdfgs.append(output["ocdfg"])
 
-inclusion_strategy = RelativeFrequencyBasedStrategy(frequency_threshold=0.001)
+inclusion_strategy = RelativeFrequencyBasedStrategy(frequency_threshold=0.01)
 log.pipe(
     oc_operator(inclusion_strategy=inclusion_strategy),
     #ops.do_action(print),

@@ -81,6 +81,7 @@ class OCOperator:
         for obj_type, miner in self.__control_flow.items():
             self._register_stream(obj_type, miner())
         self._register_aer_stream(aer_model_update_frequency, aer_model_max_approx_error)
+        self._register_event_stream()
 
     def _register_aer_stream(self, model_update_frequency, max_approx_error: float):
         """
@@ -105,6 +106,19 @@ class OCOperator:
             on_error=lambda e: print(f"[AER-STREAM] error:", e),
             on_completed=lambda: None
         )
+
+    def _register_event_stream(self):
+        subject = Subject[BOEvent]()
+        self.__miner_subjects["Event"] = subject
+
+        event_stream = subject.pipe(
+            ops.flat_map(lambda event: [{"type": "event", "event": event}])
+        )
+
+        # Ensure subscription is active
+        event_stream.subscribe(
+            lambda msg: self.__output_subject.on_next(msg),
+            lambda e: print(f"[Event Stream Error] {e}"))
 
     def _register_stream(self, obj_type: str, miner: Optional[StreamMiner] = None):
         """
@@ -135,6 +149,7 @@ class OCOperator:
         Flatten the incoming BOEvent and route it to its corresponding miner subject.
         If dynamic mode is enabled, miners are created on-the-fly if not present.
         """
+        self.__miner_subjects["Event"].on_next(event)
         self.__miner_subjects["AERStream"].on_next(event)
         for flat_event in self._flatten(event):
             obj_type = flat_event.get_omap_types()[0]
@@ -174,8 +189,17 @@ class OCOperator:
         def pipeline(stream: Observable[BOEvent]) -> Observable[dict]:
             return stream.pipe(
                 ops.do_action(self._route_to_miner),
-                ops.filter(lambda e: not isinstance(e, BOEvent)),
+                  # Don't let main stream push outputs
                 ops.merge(self.__output_subject),
+                ops.filter(lambda e: isinstance(e, dict)),
                 ops.flat_map(self.__inclusion_strategy.evaluate),
             )
+        #def pipeline(stream: Observable[BOEvent]) -> Observable[dict]:
+        #    return stream.pipe(
+        #        ops.do_action(self._route_to_miner),
+        #        ops.filter(lambda e: not isinstance(e, BOEvent)),
+        #        ops.merge(self.__output_subject),
+        #        ops.do_action(print),
+        #        ops.flat_map(self.__inclusion_strategy.evaluate),
+        #    )
         return pipeline
