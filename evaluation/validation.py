@@ -15,14 +15,14 @@ from pybeamline.sources.ocel_log_source_from_file import ocel_log_source_from_fi
 
 logs = {"Logistics": {"filename": "../tests/logistics.jsonocel",
                       "parameters": [0.025],
-                      "color": "#ff7f0e"},
-        "P2P": {"filename": "../tests/ocel2-p2p.json",
-                "parameters": [0.025],
-                "color": "#2ca02c"},
-        "Order Management": {"filename": "../tests/order-management.json",
-                            "parameters": [0.025],
-                            "color": "#1f77b4"},
-        }
+                      "color": "#ff7f0e"}}
+#        "P2P": {"filename": "../tests/ocel2-p2p.json",
+#                "parameters": [0.025],
+#                "color": "#2ca02c"},
+#        "Order Management": {"filename": "../tests/order-management.json",
+#                            "parameters": [0.025],
+#                            "color": "#1f77b4"},
+#        }
 
 def conform_ocdfg(ocdfg_pm4py) -> set[Tuple[str, str, str]]:
     """
@@ -59,6 +59,8 @@ for log in logs:
     # Read the OCDFG from the log file
     ocdfg_pm4py = read_ocel2(log_file)
     ocdfg_offline_discovery = ocdfg_discovery.apply(ocdfg_pm4py)
+    # Visualize the OCDFG
+
     # Convert the PM4Py OCDFG to a set of edges
     ocdfg_edges_pm4py = conform_ocdfg(ocdfg_offline_discovery)
     logs[log]["pm4py"] = ocdfg_edges_pm4py
