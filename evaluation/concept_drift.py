@@ -68,8 +68,7 @@ order_management_source = ocel_log_source_from_file("../tests/order-management.j
 combined_source = concat(p2p_source, order_management_source)
 
 
-
-
+param = 0.025
 result = {}
 event_count = 0
 def handle_snapshot(snapshot, log_name: str):
@@ -82,7 +81,7 @@ def handle_snapshot(snapshot, log_name: str):
 
 
 # Inclusion Strategy
-inclusion_strategy = SlidingWindowStrategy(125)
+inclusion_strategy = SlidingWindowStrategy(window_size=125)
 miner = lambda: heuristics_miner_lossy_counting(model_update_frequency=1)
 
 combined_source.pipe(
@@ -102,17 +101,37 @@ for event_count, ocdfg_edges in result.items():
         similarities[log][event_count] = similarity
         print(f"Log: {log}, Event Count: {event_count}, Similarity: {similarity}")
 
+import os
 
-# Simulated example of 'similarities' for illustration (replace with actual values)
-# similarities = {
-#     "P2P": {100: 0.4, 200: 0.5, 300: 0.6},
-#     "Order Management": {100: 0.45, 200: 0.55, 300: 0.65}
-# }
+# Determine filename based on strategy
+strategy_name = "SlidingWindow"
 
+# Create output dir if not exists
+output_dir = "jaccard_similarities"
+os.makedirs(output_dir, exist_ok=True)
+
+# Build output file path
+output_file = os.path.join(output_dir, f"Concept_Drift_{strategy_name}_{param}.csv")
+
+# Get sorted list of all event counts
+all_event_counts = sorted(set().union(*[set(sim.keys()) for sim in similarities.values()]))
+
+# Write CSV
+with open(output_file, "w") as f:
+    header = ["Event Count"] + [f"{log} Jacc" for log in logs]
+    f.write(",".join(header) + "\n")
+
+    for event_count in all_event_counts:
+        row = [str(event_count)]
+        for log in logs:
+            jacc = similarities.get(log, {}).get(event_count, "")
+            row.append(f"{jacc:.4f}" if jacc != "" else "")
+        f.write(",".join(row) + "\n")
+
+print(f"Saved combined Jaccard similarities to: {output_file}")
+
+"""
 def plot_combined_jaccard(similarities: dict, logs: dict, title: str):
-    """
-    Plots Jaccard similarity over events for multiple logs using predefined colors.
-    """
     data = []
     for log_name, values in similarities.items():
         color = logs[log_name]["color"]
@@ -143,3 +162,5 @@ def plot_combined_jaccard(similarities: dict, logs: dict, title: str):
 
 # Call function using actual similarities
 plot_combined_jaccard(similarities, logs, "Jaccard Similarity Comparison Across Logs - (Window Size: 125)")
+
+"""

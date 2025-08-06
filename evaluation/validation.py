@@ -14,15 +14,15 @@ from pybeamline.models.ocdfg import OCDFG
 from pybeamline.sources.ocel_log_source_from_file import ocel_log_source_from_file
 
 logs = {"Logistics": {"filename": "../tests/logistics.jsonocel",
-                      "parameters": [0.025],
-                      "color": "#ff7f0e"}}
-#        "P2P": {"filename": "../tests/ocel2-p2p.json",
-#                "parameters": [0.025],
-#                "color": "#2ca02c"},
-#        "Order Management": {"filename": "../tests/order-management.json",
-#                            "parameters": [0.025],
-#                            "color": "#1f77b4"},
-#        }
+                      "parameters": [0.05],
+                      "color": "#ff7f0e"},
+        "P2P": {"filename": "../tests/ocel2-p2p.json",
+                "parameters": [0.05],
+                "color": "#2ca02c"},
+        "Order Management": {"filename": "../tests/order-management.json",
+                            "parameters": [0.05],
+                            "color": "#1f77b4"},
+        }
 
 def conform_ocdfg(ocdfg_pm4py) -> set[Tuple[str, str, str]]:
     """
